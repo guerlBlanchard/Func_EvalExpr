@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a0b42fdb28fdbc424811f922239fa7addd3e13f992ac77484f95413b4af00a48
+-- hash: 1a6628840f818740fabae01716d0e3f7422e4d1a3b6434e07b05023d9e816389
 
 name:           funEvalExpr
 version:        0.1.0.0
@@ -27,7 +27,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Parse
   other-modules:
       Paths_funEvalExpr
   hs-source-dirs:
