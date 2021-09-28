@@ -15,7 +15,8 @@ module Parse
     parseMany,
     parseSome,
     parseUInt,
-    parseInt
+    parseInt,
+    parseTuple
     )where
 
 import Text.Read
@@ -27,7 +28,7 @@ parseTuple a x = case parseChar '(' x of
     Just (_, par1) -> case a par1 of
         Just (r1, x1) -> case parseChar ',' x1 of
             Just (_, vir) -> case a vir of
-                Just (r2, par2) -> case parseChar ')' par2 of
+                Just (r2, par2) -> case parseChar ')' x of
                     Just (_, rest) -> Just ((r1, r2), rest)
                     Nothing -> Nothing
                 Nothing -> Nothing
