@@ -22,7 +22,7 @@ module Parse
 import Text.Read
 
 data Parser a = Parser {
-    runParser :: String -> Maybe (a, String)
+    runParser :: String -> Maybe (a, String) 
 }
 
 parseChar :: Char -> Parser Char
@@ -63,6 +63,7 @@ parseAndWith function (Parser a) (Parser b) = Parser func where
 
 parseMany :: Parser a -> Parser [a]
 parseMany (Parser a) = Parser func where
+                    func [] = Just ([], [])
                     func (x:xs) = case a (x:xs) of
                         Just (r, xr) -> Just ([r] ++ jr, jx)
                             where Just (jr, jx) = runParser (parseMany (Parser a)) xs
@@ -95,7 +96,7 @@ parseTuple (Parser a) = Parser func where
                         Just (_, par1) -> case a par1 of
                             Just (r1, x1) -> case runParser (parseChar ',') x1 of
                                 Just (_, vir) -> case a vir of
-                                    Just (r2, par2) -> case runParser (parseChar ')') x of
+                                    Just (r2, par2) -> case runParser (parseChar ')') par2 of
                                         Just (_, rest) -> Just ((r1, r2), rest)
                                         Nothing -> Nothing
                                     Nothing -> Nothing
