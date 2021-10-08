@@ -11,9 +11,14 @@ module EvalExpr
 
 import Parse
 
+eval:: String -> Int 
+eval = add
+    where
+        add = parseOr (mul) (parseOr (mul + add) (mul - add))
+        mul = parseOr (pow) (parseOr (pow * pow) (pow / pow))
+        pow = parseOr (num) (num ^ pow)
+        num = parseOr (dig) (add)
+        dig = parseInt 
+
 evalExpr :: String -> Maybe Int
-evalExpr = add
-    where   add = mult + mult parseOr mult - mult parseOr mult
-            mult = opt * opt parseOr opt / opt parseOr opt
-            opt = num parseOr evalExpr
-            num = parseInt
+evalExpr = eval
