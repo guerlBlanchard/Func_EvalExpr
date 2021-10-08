@@ -76,11 +76,10 @@ parseSome (Parser a) = Parser func where
                             where Just (jr, jx) = runParser (parseMany (Parser a)) xs
                         Nothing -> Nothing
 
+
 parseUInt :: Parser Int
 parseUInt = Parser func where
-                    func x = case runParser (parseSome (parseAnyChar ['0'..'9'])) x of
-                        Just (r, xr) -> Just (read r :: Int, xr)
-                        Nothing -> Nothing
+                    func x = read fmap runParser (parseSome (parseAnyChar ['0'..'9'])) x
 
 parseInt :: Parser Int
 parseInt = Parser func where
