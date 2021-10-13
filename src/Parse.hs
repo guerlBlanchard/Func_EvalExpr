@@ -22,8 +22,15 @@ module Parse
 import Text.Read
 
 data Parser a = Parser {
-    runParser :: String -> Maybe (a, String) 
+    runParser :: String -> Maybe (a, String)
 }
+
+instance Functor Parser where
+    fmap :: (a -> b) -> Parser a -> Parser b
+    fmap fct parser = Parser func where
+                        func str = case runParser parser str of
+                                    Nothing -> Nothing
+                                    Just (a, string) -> Just (fct a, string)
 
 parseChar :: Char -> Parser Char
 parseChar a = Parser func where
@@ -76,10 +83,11 @@ parseSome (Parser a) = Parser func where
                             where Just (jr, jx) = runParser (parseMany (Parser a)) xs
                         Nothing -> Nothing
 
-
 parseUInt :: Parser Int
 parseUInt = Parser func where
-                    func x = read fmap runParser (parseSome (parseAnyChar ['0'..'9'])) x
+                    func x = case runParser (parseSome (parseAnyChar ['0'..'9'])) x of
+                        Just (r, xr) -> Just (read r :: Int, xr)
+                        Nothing -> Nothing
 
 parseInt :: Parser Int
 parseInt = Parser func where
