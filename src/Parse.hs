@@ -7,6 +7,8 @@
 
 module Parse
     (
+    Parser,
+    fmap,
     parseChar,
     parseAnyChar,
     parseAnd,
