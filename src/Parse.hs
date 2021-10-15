@@ -18,7 +18,8 @@ module Parse
     parseSome,
     parseUInt,
     parseInt,
-    parseTuple
+    parseTuple,
+    runParser
     )where
 
 import Text.Read
@@ -28,7 +29,6 @@ data Parser a = Parser {
 }
 
 instance Functor Parser where
-    fmap :: (a -> b) -> Parser a -> Parser b
     fmap fct parser = Parser func where
                         func str = case runParser parser str of
                                     Nothing -> Nothing
