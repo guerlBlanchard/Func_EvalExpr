@@ -23,16 +23,34 @@ module Parse
     )where
 
 import Text.Read
+import Control.Applicative
 
-data Parser a = Parser {
+newtype Parser a = Parser {
     runParser :: String -> Maybe (a, String)
 }
+
+instance Applicative Parser where
+    pure a = Parser $ \ str -> Just (a, str)
+    p1 <*> p2 = Parser func where 
+        func str = case runParser p1 str of
+            Just (r1, str1) -> case runParser p2 str1 of
+                Just (r2, str2) -> Just (r1 r2, str2)
+                Nothing -> Nothing
+            Nothing -> Nothing
 
 instance Functor Parser where
     fmap fct parser = Parser func where
                         func str = case runParser parser str of
                                     Nothing -> Nothing
                                     Just (a, string) -> Just (fct a, string)
+
+instance Alternative Parser where
+    empty = Parser func where
+                func str = Nothing
+    p1 <|> p2 = Parser func where
+                    func str = case runParser p1 str of
+                        Just (r, str1) -> Just (r, str1)
+                        Nothing -> runParser p2 str
 
 parseChar :: Char -> Parser Char
 parseChar a = Parser func where
