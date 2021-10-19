@@ -9,6 +9,7 @@ module EvalExpr
     (
     )where
 
+import Control.Applicative
 import Parse
 
 -- add ::= mul + add <|> mul - add <|> mul
@@ -26,28 +27,35 @@ data EXP = POW PAR EXP
 
 data MUL = MULPOW EXP MUL
         | DIVPOW EXP MUL
+        | MSOLO
         deriving (Show)
 
 data ADD = ADDOP MUL ADD
         | SUBOP MUL ADD
+        | ASOLO MUL
         deriving (Show)
 
 data AST = Add ADD | Mul MUL | Exp EXP | Par PAR
 
 eval :: AST -> Float
-eval x = case x of
-        Add (ADDOP i j) -> MUL i + ADD j
-        Add (SUBOP i j) -> MUL i - ADD j
-        Mul (MULPOW i j) -> EXP i * MUL j
-        Mul (DIVPOW i j) -> EXP i / MUL j
-        Exp (POW i j) -> PAR i ^ POW j
-        Par (PRIO i) -> ADD i
-        Par (DIG i) -> i
+eval (Add (ADDOP i j)) = (eval (Mul i)) + (eval (Add j))
+--        Add (SUBOP i j) -> MUL i - ADD j
+--        Mul (MULPOW i j) -> EXP i * MUL j
+--        Mul (DIVPOW i j) -> EXP i / MUL j
+--        Exp (POW i j) -> PAR i ^ POW j
+--        Par (PRIO i) -> ADD i
+--        Par (DIG i) -> i
 
-add :: Parser AST
-add = setExpr ADDOP mul add '+' <|> setExpr SUBOP mul add '-' <|> mul
+--add :: Parser AST
+--add = setExpr ADDOP mul add '+' <|> setExpr SUBOP mul add '-' <|> mul
 
-mul :: Parser AST
+parseAst :: Parser AST
+parseAst = Add <$> add
+
+add :: Parser ADD
+add = (ADDOP <$> mul <*> (parseChar '+' *> add)) <|> (SUBOP <$> mul <*> (parseChar '-' *> add)) <|> ASOLO <$> mul 
+
+mul :: Parser MUL
 mul = setExpr MULPOW pow mul '*' <|> setExpr DIVPOW pow mul '/' <|> pow
 
 pow :: Parser AST
@@ -62,9 +70,9 @@ num = Parser func where
         Nothing -> Nothing
         Just (a, string) -> Just (read a:: Float, string)
 
-setExpr :: AST -> Parser AST -> Parser AST -> Char -> Parser AST
-setExpr expr a b op = expr <$> a <*> (parseMany (parseChar ' ') *> parseChar op ) *> b
-
+--setExpr :: AST -> Parser AST -> Parser AST -> Char -> Parser AST
+--setExpr expr a b op = expr <$> a <*> (parseMany (parseChar ' ') *> parseChar op ) *> b
+--faire ParserOperator
 evalExpr :: String -> Float
 evalExpr = eval <$> runParser add
 
