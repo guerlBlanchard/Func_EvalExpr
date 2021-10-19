@@ -5,22 +5,7 @@
 -- Parse
 --
 
-module Parse
-    (
-    Parser,
-    fmap,
-    parseChar,
-    parseAnyChar,
-    parseAnd,
-    parseAndWith,
-    parseOr,
-    parseMany,
-    parseSome,
-    parseUInt,
-    parseInt,
-    parseTuple,
-    runParser
-    )where
+module Parse where
 
 import Text.Read
 import Control.Applicative

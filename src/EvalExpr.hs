@@ -17,100 +17,111 @@ import Parse
 -- num ::= dig <|> (add)
 -- dig ::= [0..9]
 
--- data ADD = ADDOP MUL ADD
---         | SUBOP MUL ADD
+data PAR = PRIO ADD
+        | DIG Float
+        deriving (Show)
 
--- data MUL = MULPOW EXP MUL
---         | DIVPOW EXP MUL
+data EXP = POW PAR EXP
+        deriving (Show)
 
--- data EXP = POW NUM EXP
+data MUL = MULPOW EXP MUL
+        | DIVPOW EXP MUL
+        deriving (Show)
 
--- data PAR = PRIO ADD
---         | CALC NUM
+data ADD = ADDOP MUL ADD
+        | SUBOP MUL ADD
+        deriving (Show)
 
--- data NUM = DIG Float
-
--- eval :: ADD -> Float
--- eval x = case x of
---         ADDOP i j -> MUL i + ADD j
---         SUBOP i j -> MUL i - ADD j
---         MULPOW i j -> EXP i * MUL j
---         DIVPOW i j -> EXP i / MUL j
---         POW i j -> PAR i ^ POW j
---         PRIO i -> ADD i
---         CALC i -> NUM i
---         DIG i -> i
-
--- add :: Parser ADD
--- add = parseOr (mul + add) (parseOr (mul - add) mul)
-
--- mul :: Parser MUL
--- mul = parseOr (pow * mul) (parseOr (pow / mul) pow)
-
--- pow :: Parser EXP
--- pow = parseOr par (par ^ pow)
-
--- par :: Parser PAR
--- par = parseOr (parseChar ')' add parseChar '(') num
-
--- num :: Parser Float
--- num = (fmap read ::Float) parseMany (parseChar ' ')
-
--- evalExpr :: String -> Float
--- evalExpr = fmap eval runParser add
-
-
-
-
-
-
-
-
-
-
-
-data EXPR = ADD EXPR EXPR
-        | SUB EXPR EXPR
-        | MUL EXPR EXPR
-        | DIV EXPR EXPR
-        | POW EXPR EXPR
-        | DIG Float  
-        deriving Show
-
--- test = MUL (ADD (DIG 20) (DIG 10)) (ADD (DIG 20) (DIG 10))
-
--- 20 + 10 * 20 + 10 
-
-eval :: EXPR -> Float  
+eval :: ADD -> Float
 eval x = case x of
-    ADD i j -> eval i + eval j
-    SUB i j -> eval i - eval j
-    MUL i j -> eval i * eval j
-    DIV i j -> eval i / eval j
-    POW i j -> eval i ^ eval j
-    DIG i -> i 
+        ADDOP i j -> MUL i + ADD j
+        SUBOP i j -> MUL i - ADD j
+        MULPOW i j -> EXP i * MUL j
+        DIVPOW i j -> EXP i / MUL j
+        POW i j -> PAR i ^ POW j
+        PRIO i -> ADD i
+        DIG i -> i
 
-add :: Parser EXPR
-add = parseOr mul (parseOr (mul + add) (mul - add))
+add :: Parser ADD
+add = mul + add <|> mul - add <|> mul
 
-mul :: Parser EXPR
-mul = parseOr pow (parseOr (pow * mul) (pow / mul))
+mul :: Parser MUL
+mul = pow * mul <|> pow / mul <|> pow
 
-pow :: Parser EXPR
-pow = parseOr num (num ^ pow)
+pow :: Parser EXP
+pow = par ^ pow <|> par
 
-num :: Parser EXPR
-num = parseOr ((fmap read ::Float) parseMany (parseChar ' ')) add
+par :: Parser PAR
+par = num <|> parseChar '(' *> add <* parseChar ')'
 
-setExpr :: EXPR -> Parser EXPR -> Parser EXPR -> Char -> Parser EXPR
-setExpr expr a b op = fmap expr (parseSome a (b (parseChar op))
+num :: Parser Float
+num = Parser func where
+    func str = case runParser (parseMany (parseChar ' ')) str of
+        Nothing -> Nothing
+        Just (a, string) -> Just (read a:: Float, string)
 
-delop :: Parser EXPR -> Char -> Parser EXPR
-delop next = next parseAnd (parseMany (parseChar ' ')) parseChar
+space :: Parser a
+space = runParser (parseMany (parseChar ' '))
 
-expr :: Parser EXPR 
-expr = add
+setExpr :: ADD -> Parser ADD -> Parser ADD -> Char -> Parser ADD
+setExpr expr a b op x = runParser (expr <$> a <*> (parseMany (parseChar ' ') *> parseChar op ) *> b) x
 
-evalExpr :: String -> Float 
-evalExpr x = eval res
-        where Just (res, _) = runParser expr x
+evalExpr :: String -> Float
+evalExpr = fmap eval runParser add
+
+-- data EXPR = ADD EXPR EXPR
+--         | SUB EXPR EXPR
+--         | MUL EXPR EXPR
+--         | DIV EXPR EXPR
+--         | POW EXPR EXPR
+--         | DIG Float  
+--         deriving Show
+
+-- --test = MUL (ADD (DIG 20) (DIG 10)) (ADD (DIG 20) (DIG 10))
+
+-- -- (20 + 10) * (20 + 10) 
+
+-- eval :: EXPR -> Float
+-- eval x = case x of
+--     ADD i j -> eval i + eval j
+--     SUB i j -> eval i - eval j
+--     MUL i j -> eval i * eval j
+--     DIV i j -> eval i / eval j
+--     POW i j -> eval i ^ eval j
+--     DIG i -> i 
+
+-- add :: Parser Float
+-- add = parseOr mul (parseOr (setExpr ADD mul add '+') (setExpr SUB mul add '-'))
+
+-- mul :: Parser Float
+-- mul = parseOr pow (parseOr (setExpr MUL pow mul '*') (setExpr DIV pow mul '/'))
+
+-- pow :: Parser Float
+-- pow = parseOr num (setExpr POW num pow '^')
+
+-- num :: Parser Float 
+-- num = parseOr (fmap (read ::Float) space) (parsechar ')' add parseChar '(')
+
+-- space :: Parser String 
+-- space = parseMany (parseChar ' ')
+
+-- setExpr :: EXPR -> Parser EXPR -> Parser EXPR -> Char -> Parser Float
+-- setExpr exp a b op = case result of
+--         Just(x, y) -> Parser pfloat
+--         Nothing-> Parser pNothing
+--         where
+--             pNothing = Nothing 
+--             pfloat str = Just (eval exp, str)
+--             result = case runParser a of
+--                 Just(x, xr) -> case runParser (b (parseChar op)) of
+--                     Just(y, yr) -> Just(x, y)
+--                     Nothing -> Nothing
+--                 Nothing -> Nothing
+
+
+-- expr :: Parser Float 
+-- expr = add
+
+-- evalExpr :: String -> Float 
+-- evalExpr x = res
+--         where Just (res, _) = runParser expr x
