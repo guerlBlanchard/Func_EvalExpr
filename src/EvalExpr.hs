@@ -5,9 +5,7 @@
 -- EvalExpr
 --
 
-module EvalExpr
-    (
-    )where
+module EvalExpr where
 
 import Control.Applicative
 import Parse
@@ -45,7 +43,7 @@ eval (Add (ASOLO i)) = eval (Mul i)
 eval (Mul (MULPOW i j)) = eval (Exp i) * eval (Mul j)
 eval (Mul (DIVPOW i j)) = eval (Exp i) / eval (Mul j)
 eval (Mul (MSOLO i)) = eval (Exp i)
-eval (Exp (POW i j)) = eval (Par i) ^ eval (Exp j)
+eval (Exp (POW i j)) = eval (Par i) ** eval (Exp j)
 eval (Exp (PSOLO i)) = eval (Par i)
 eval (Par (PRIO i)) = eval (Add i)
 eval (Par (DIG i)) = i
@@ -92,7 +90,9 @@ parseSpace = func where
 --faire ParserOperator
 
 evalExpr :: String -> Float
-evalExpr = eval <$> runParser parseAst
+evalExpr str = case runParser parseAst str of
+                Just (a, b) -> eval a
+                Nothing -> 0
 
 -- data EXPR = ADD EXPR EXPR
 --         | SUB EXPR EXPR
