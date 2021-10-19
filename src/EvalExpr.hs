@@ -32,26 +32,28 @@ data ADD = ADDOP MUL ADD
         | SUBOP MUL ADD
         deriving (Show)
 
-eval :: ADD -> Float
+data AST = Add ADD | Mul MUL | Exp EXP | Par PAR
+
+eval :: AST -> Float
 eval x = case x of
-        ADDOP i j -> MUL i + ADD j
-        SUBOP i j -> MUL i - ADD j
-        MULPOW i j -> EXP i * MUL j
-        DIVPOW i j -> EXP i / MUL j
-        POW i j -> PAR i ^ POW j
-        PRIO i -> ADD i
-        DIG i -> i
+        Add (ADDOP i j) -> MUL i + ADD j
+        Add (SUBOP i j) -> MUL i - ADD j
+        Mul (MULPOW i j) -> EXP i * MUL j
+        Mul (DIVPOW i j) -> EXP i / MUL j
+        Exp (POW i j) -> PAR i ^ POW j
+        Par (PRIO i) -> ADD i
+        Par (DIG i) -> i
 
-add :: Parser ADD
-add = mul + add <|> mul - add <|> mul
+add :: Parser AST
+add = setExpr ADDOP mul add '+' <|> setExpr SUBOP mul add '-' <|> mul
 
-mul :: Parser MUL
-mul = pow * mul <|> pow / mul <|> pow
+mul :: Parser AST
+mul = setExpr MULPOW pow mul '*' <|> setExpr DIVPOW pow mul '/' <|> pow
 
-pow :: Parser EXP
-pow = par ^ pow <|> par
+pow :: Parser AST
+pow = setExpr POW par pow '^' <|> par
 
-par :: Parser PAR
+par :: Parser AST
 par = num <|> parseChar '(' *> add <* parseChar ')'
 
 num :: Parser Float
@@ -60,14 +62,11 @@ num = Parser func where
         Nothing -> Nothing
         Just (a, string) -> Just (read a:: Float, string)
 
-space :: Parser a
-space = runParser (parseMany (parseChar ' '))
-
-setExpr :: ADD -> Parser ADD -> Parser ADD -> Char -> Parser ADD
-setExpr expr a b op x = runParser (expr <$> a <*> (parseMany (parseChar ' ') *> parseChar op ) *> b) x
+setExpr :: AST -> Parser AST -> Parser AST -> Char -> Parser AST
+setExpr expr a b op = expr <$> a <*> (parseMany (parseChar ' ') *> parseChar op ) *> b
 
 evalExpr :: String -> Float
-evalExpr = fmap eval runParser add
+evalExpr = eval <$> runParser add
 
 -- data EXPR = ADD EXPR EXPR
 --         | SUB EXPR EXPR
