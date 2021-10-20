@@ -7,5 +7,5 @@ import EvalExpr
 main :: IO ()
 main = do
     args <- getArgs
-    evalExpr args[1]
+    print $ evalExpr (head args)
     exitWith (ExitSuccess)
