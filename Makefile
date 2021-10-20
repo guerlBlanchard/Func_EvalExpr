@@ -13,6 +13,9 @@ all:
 	stack build
 	cp $(STACK_PATH)/bin/funEvalExpr-exe ./$(NAME)
 
+tests_run:
+	stack test
+
 clean:
 	stack clean
 
