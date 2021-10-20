@@ -73,7 +73,7 @@ pow :: Parser EXP
 pow = (POW <$> par <*> (parseChar '^' *> pow)) <|> PSOLO <$> par
 
 par :: Parser PAR
-par = DIG <$> parseFloat <|> PRIO <$> (parseChar '(' *> add <* parseChar ')')
+par = DIG <$> parseSpace parseFloat <|> PRIO <$> parseSpace (parseChar '(' *> add <* parseChar ')')
 
 -- num :: Parser Float
 -- num = Parser func where
