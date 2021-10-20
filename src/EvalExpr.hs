@@ -67,10 +67,10 @@ add :: Parser ADD
 add = (ADDOP <$> mul <*> (parseChar '+' *> add)) <|> (SUBOP <$> mul <*> (parseChar '-' *> add)) <|> ASOLO <$> mul
 
 mul :: Parser MUL
-mul = (MULPOW <$> pow <*> (parseChar '+' *> mul)) <|> (DIVPOW <$> pow <*> (parseChar '-' *> mul)) <|> MSOLO <$> pow
+mul = (MULPOW <$> pow <*> (parseChar '*' *> mul)) <|> (DIVPOW <$> pow <*> (parseChar '/' *> mul)) <|> MSOLO <$> pow
 
 pow :: Parser EXP
-pow = (POW <$> par <*> (parseChar '+' *> pow)) <|> PSOLO <$> par
+pow = (POW <$> par <*> (parseChar '^' *> pow)) <|> PSOLO <$> par
 
 par :: Parser PAR
 par = DIG <$> num <|> PRIO <$> (parseChar '(' *> add <* parseChar ')')
@@ -79,7 +79,7 @@ num :: Parser Float
 num = Parser func where
     func str = case runParser (parseMany (parseChar ' ')) str of
         Nothing -> Nothing
-        Just (a, string) -> Just (read a:: Float, string)
+        Just (a, string) -> Just (read string :: Float, a)
 
 parseSpace :: Parser a -> Parser a
 parseSpace = func where
