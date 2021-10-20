@@ -73,13 +73,13 @@ pow :: Parser EXP
 pow = (POW <$> par <*> (parseChar '^' *> pow)) <|> PSOLO <$> par
 
 par :: Parser PAR
-par = DIG <$> num <|> PRIO <$> (parseChar '(' *> add <* parseChar ')')
+par = DIG <$> parseFloat <|> PRIO <$> (parseChar '(' *> add <* parseChar ')')
 
-num :: Parser Float
-num = Parser func where
-    func str = case runParser (parseMany (parseChar ' ')) str of
-        Nothing -> Nothing
-        Just (a, string) -> Just (read string :: Float, a)
+-- num :: Parser Float
+-- num = Parser func where
+--     func str = case runParser (parseMany (parseChar ' ')) str of
+--         Nothing -> Nothing
+--         Just (a, string) -> Just (read string :: Float, a)
 
 parseSpace :: Parser a -> Parser a
 parseSpace = func where

@@ -9,6 +9,7 @@ module Parse where
 
 import Text.Read
 import Control.Applicative
+import GHC.Base (Float)
 
 newtype Parser a = Parser {
     runParser :: String -> Maybe (a, String)
@@ -101,6 +102,16 @@ parseInt = Parser func where
                             Just (r, xr2) -> Just (-r, xr2)
                             Nothing -> Nothing
                         Nothing -> runParser parseUInt x
+
+parseFloat :: Parser Float
+parseFloat = Parser func where
+                    func x = case runParser parseInt x of
+                            Just (r, xr1) -> case runParser (parseChar '.') xr1 of
+                                Just (_, pr) -> case runParser parseUInt pr of
+                                    Just (r2, xr2) -> Just (read (show r ++ "." ++ show r2)::Float, xr2)
+                                    Nothing -> Nothing
+                                Nothing -> Just (fromIntegral r::Float, xr1)
+                            Nothing -> Nothing
 
 parseTuple :: Parser a -> Parser (a,a)
 parseTuple (Parser a) = Parser func where
