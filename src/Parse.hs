@@ -126,3 +126,7 @@ parseTuple (Parser a) = Parser func where
                                 Nothing -> Nothing
                             Nothing -> Nothing
                         Nothing -> Nothing
+
+parseSpace :: Parser a -> Parser a
+parseSpace = func where
+        func str = parseMany (parseChar ' ') *> str <* parseMany (parseChar ' ')
