@@ -84,6 +84,7 @@ parseMany (Parser a) = Parser func where
 
 parseSome :: Parser a -> Parser [a]
 parseSome (Parser a) = Parser func where
+                    func [] = Nothing 
                     func (x:xs) = case a (x:xs) of
                         Just (r, xr) -> Just ([r] ++ jr, jx)
                             where Just (jr, jx) = runParser (parseMany (Parser a)) xs
@@ -107,8 +108,8 @@ parseFloat :: Parser Float
 parseFloat = Parser func where
                     func x = case runParser parseInt x of
                             Just (r, xr1) -> case runParser (parseChar '.') xr1 of
-                                Just (_, pr) -> case runParser parseUInt pr of
-                                    Just (r2, xr2) -> Just (read (show r ++ "." ++ show r2)::Float, xr2)
+                                Just (_, pr) -> case runParser (parseSome (parseAnyChar ['0'..'9'])) pr of
+                                    Just (r2, xr2) -> Just (read (show r ++ "." ++ r2)::Float, xr2)
                                     Nothing -> Nothing
                                 Nothing -> Just (fromIntegral r::Float, xr1)
                             Nothing -> Nothing
