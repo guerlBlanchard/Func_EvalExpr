@@ -9,6 +9,7 @@ module EvalExpr where
 
 import Control.Applicative
 import Parse
+import System.Exit (exitWith, ExitCode (ExitFailure), exitSuccess, exitFailure)
 
 data PAR = PRIO ADD
         | DIG Float
@@ -57,7 +58,11 @@ pow = (POW <$> par <*> (parseChar '^' *> pow)) <|> PSOLO <$> par
 par :: Parser PAR
 par = DIG <$> parseSpace parseFloat <|> PRIO <$> parseSpace (parseChar '(' *> add <* parseChar ')')
 
-evalExpr :: String -> Float
+printResult :: (Float, String) -> IO ()
+printResult (a, "") = print a
+printResult (_, _) = exitWith(ExitFailure 84)
+
+evalExpr :: String -> IO ()
 evalExpr str = case runParser parseAst str of
-                Just (a, b) -> eval a
-                Nothing -> 0
+                Just (a, b) -> printResult (eval a, b)
+                Nothing -> exitWith(ExitFailure 84)
