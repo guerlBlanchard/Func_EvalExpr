@@ -10,6 +10,8 @@ module EvalExpr where
 import Control.Applicative
 import Parse
 import System.Exit (exitWith, ExitCode (ExitFailure), exitSuccess, exitFailure)
+import GHC.Real (infinity)
+import qualified GHC.Real as Float
 
 data PAR = PRIO ADD
         | DIG Float
@@ -59,7 +61,9 @@ par :: Parser PAR
 par = DIG <$> parseSpace parseFloat <|> PRIO <$> parseSpace (parseChar '(' *> add <* parseChar ')')
 
 printResult :: (Float, String) -> IO ()
-printResult (a, "") = print a
+printResult (a, "") = if isInfinite a
+                        then exitWith(ExitFailure 84)
+                        else print a
 printResult (_, _) = exitWith(ExitFailure 84)
 
 evalExpr :: String -> IO ()
