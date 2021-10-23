@@ -13,6 +13,7 @@ import System.Exit (exitWith, ExitCode (ExitFailure), exitSuccess, exitFailure)
 import GHC.Real (infinity)
 import qualified GHC.Real as Float
 import Numeric
+import Text.Printf
 
 data PAR = PRIO ADD
         | DIG Float
@@ -64,7 +65,7 @@ par = DIG <$> parseSpace parseFloat <|> PRIO <$> parseSpace (parseChar '(' *> ad
 printResult :: (Float, String) -> IO ()
 printResult (a, "") = if isInfinite a
                         then exitWith(ExitFailure 84)
-                        else print $ showFFloat (Just 2) a ""
+                        else printf "%.2f\n" a
 printResult (_, _) = exitWith(ExitFailure 84)
 
 evalExpr :: String -> IO ()
